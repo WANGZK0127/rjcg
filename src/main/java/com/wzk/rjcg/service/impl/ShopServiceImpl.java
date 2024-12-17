@@ -9,6 +9,7 @@ import com.wzk.rjcg.entity.Shop;
 import com.wzk.rjcg.mapper.ShopMapper;
 import com.wzk.rjcg.service.BlogTbService;
 import com.wzk.rjcg.service.IShopService;
+import com.wzk.rjcg.util.RedisConstants;
 import com.wzk.rjcg.util.Result;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.geo.GeoResult;
@@ -19,6 +20,7 @@ import org.springframework.data.redis.domain.geo.GeoReference;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import com.wzk.rjcg.util.SystemConstants;
+
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
@@ -30,24 +32,25 @@ import java.util.concurrent.TimeUnit;
  */
 @Service
 public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IShopService {
-
+	
 	@Resource
 	private StringRedisTemplate stringRedisTemplate;
 	@Resource
 	private BlogTbService blogTbService;
+	
 	@Override
 	public Result queryById(Integer id) {
 		//缓存穿透解决
 		//Shop shop = cacheClient.queryWithPassThrough(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
 		//缓存击穿解决
 		//Shop shop = cacheClient.queryWithLogicalExpire(RedisConstants.CACHE_SHOP_KEY, id, Shop.class, this::getById, RedisConstants.CACHE_SHOP_TTL, TimeUnit.MINUTES);
-		Shop shop = query().eq("id", id).one();		
+		Shop shop = query().eq("id", id).one();
 		if (shop == null) {
 			return Result.fail("商铺不存在");
 		}
 		return Result.ok(shop);
 	}
-
+	
 	@Override
 	@Transactional
 	public Result updateShop(Shop shop) {
@@ -61,19 +64,19 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 		//stringRedisTemplate.delete(RedisConstants.CACHE_SHOP_KEY + id);
 		return Result.ok();
 	}
-
+	
 	@Override
 	public Result queryShopByType(Integer typeId, Integer current, Double x, Double y) {
 		//1.判断是否需要根据位置查
-		//if (x == null || y == null) {
+		if (x == null || y == null) {
 			// 根据类型分页查询
 			Page<Shop> page = query()
 					.eq("type_id", typeId)
 					.page(new Page<>(current, SystemConstants.DEFAULT_PAGE_SIZE));
 			// 返回数据
 			return Result.ok(page.getRecords());
-		//}
-/*		// 2.计算分页参数
+		}
+		// 2.计算分页参数
 		int form = (current - 1) * SystemConstants.DEFAULT_PAGE_SIZE;
 		int end = current * SystemConstants.DEFAULT_PAGE_SIZE;
 		// 3.查询redis、按照距离排序、分页。结果：shopId、distance
@@ -111,7 +114,7 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 			shop.setDistance(distanceMap.get(shop.getId().toString()).getValue());
 		}
 		// 6.返回
-		return Result.ok(shops);*/
+		return Result.ok(shops);
 	}
 	
 	@Override
@@ -120,5 +123,10 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 		ShopDTO shopDTO = new ShopDTO();
 		BeanUtil.copyProperties(query().eq("id", shopId).one(), shopDTO);
 		return Result.ok(shopDTO);
+	}
+	
+	@Override
+	public Result detail(Integer id) {
+		return Result.ok(query().eq("id", id).one());
 	}
 }

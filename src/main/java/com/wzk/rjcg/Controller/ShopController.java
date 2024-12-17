@@ -100,4 +100,11 @@ public class ShopController {
     public Result inBlog(@RequestParam("id") Integer id){
         return shopService.inBlog(id);
     }
+    /**
+     * 商铺详情
+     */
+    @RequestMapping("/detail")
+    public Result detail(@RequestParam("id") Integer id){
+        return shopService.detail(id);
+    }
 }

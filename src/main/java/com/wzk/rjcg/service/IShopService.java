@@ -39,4 +39,11 @@ public interface IShopService extends IService<Shop> {
 	 * @return
 	 */
 	Result inBlog(Integer id);
+	
+	/**
+	 * 根据ID查询店铺详情
+	 * @param id
+	 * @return
+	 */
+	Result detail(Integer id);
 }
