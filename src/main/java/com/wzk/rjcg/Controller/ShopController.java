@@ -90,4 +90,14 @@ public class ShopController {
         // 返回数据
         return Result.ok(page.getRecords());
     }
+    
+    /**
+     * 查询博客内商铺信息
+     * @param id
+     * @return
+     */
+    @RequestMapping("/inBlog")
+    public Result inBlog(@RequestParam("id") Integer id){
+        return shopService.inBlog(id);
+    }
 }

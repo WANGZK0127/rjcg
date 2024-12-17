@@ -32,4 +32,11 @@ public interface IShopService extends IService<Shop> {
 	 * @return
 	 */
 	Result queryShopByType(Integer typeId, Integer current, Double x, Double y);
+	
+	/**
+	 * 根据博客id查询博客内商铺信息
+	 * @param id
+	 * @return
+	 */
+	Result inBlog(Integer id);
 }

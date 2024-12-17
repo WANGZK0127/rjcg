@@ -1,10 +1,13 @@
 package com.wzk.rjcg.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wzk.rjcg.dto.ShopDTO;
 import com.wzk.rjcg.entity.Shop;
 import com.wzk.rjcg.mapper.ShopMapper;
+import com.wzk.rjcg.service.BlogTbService;
 import com.wzk.rjcg.service.IShopService;
 import com.wzk.rjcg.util.Result;
 import org.springframework.data.geo.Distance;
@@ -30,7 +33,8 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 
 	@Resource
 	private StringRedisTemplate stringRedisTemplate;
-
+	@Resource
+	private BlogTbService blogTbService;
 	@Override
 	public Result queryById(Integer id) {
 		//缓存穿透解决
@@ -108,5 +112,13 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 		}
 		// 6.返回
 		return Result.ok(shops);*/
+	}
+	
+	@Override
+	public Result inBlog(Integer id) {
+		Integer shopId = blogTbService.query().eq("id", id).one().getShopId();
+		ShopDTO shopDTO = new ShopDTO();
+		BeanUtil.copyProperties(query().eq("id", shopId).one(), shopDTO);
+		return Result.ok(shopDTO);
 	}
 }
