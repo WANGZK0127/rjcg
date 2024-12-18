@@ -17,15 +17,13 @@ import com.wzk.rjcg.util.RedisConstants;
 import com.wzk.rjcg.util.Result;
 import com.wzk.rjcg.util.SystemConstants;
 import com.wzk.rjcg.util.UserHolder;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.wzk.rjcg.util.RedisConstants.FEED_KEY;
@@ -84,6 +82,11 @@ public class BlogTbServiceImpl extends ServiceImpl<BlogTbMapper, Blog> implement
 		//1.获取登录用户(作者)
 		UserDTO user = UserHolder.getUser();
 		blog.setUserId(user.getId());
+		blog.setCreateTime(new Date());
+		blog.setLiked(0);
+		if(blog.getShopId() == null){
+			blog.setShopId(0);
+		}
 		//2.保存探店博文
 		boolean isSuccess = save(blog);
 		if(!isSuccess){

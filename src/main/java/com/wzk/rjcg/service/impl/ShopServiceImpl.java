@@ -120,6 +120,9 @@ public class ShopServiceImpl extends ServiceImpl<ShopMapper, Shop> implements IS
 	@Override
 	public Result inBlog(Integer id) {
 		Integer shopId = blogTbService.query().eq("id", id).one().getShopId();
+		if(shopId == 0){
+			return Result.ok();
+		}
 		ShopDTO shopDTO = new ShopDTO();
 		BeanUtil.copyProperties(query().eq("id", shopId).one(), shopDTO);
 		return Result.ok(shopDTO);

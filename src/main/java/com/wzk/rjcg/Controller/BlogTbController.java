@@ -1,12 +1,16 @@
 package com.wzk.rjcg.Controller;
 
+import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.google.common.base.Preconditions;
 import com.wzk.rjcg.dto.UserDTO;
 import com.wzk.rjcg.entity.Blog;
 import com.wzk.rjcg.service.BlogTbService;
 import com.wzk.rjcg.util.Result;
 import com.wzk.rjcg.util.SystemConstants;
 import com.wzk.rjcg.util.UserHolder;
+import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
@@ -18,6 +22,7 @@ import java.util.List;
  * @author makejava
  * @since 2024-12-13 14:07:08
  */
+@Slf4j
 @RestController
 @RequestMapping("/blog")
 public class BlogTbController{
@@ -32,7 +37,18 @@ public class BlogTbController{
 	 */
 	@PostMapping
 	public Result saveBlog(@RequestBody Blog blog) {
-		return blogTbService.saveBlog(blog);
+		try {
+			if (log.isInfoEnabled()) {
+				log.info("BlogTBController.save.blog:{}", JSON.toJSONString(blog));
+			}
+			Preconditions.checkArgument(!StringUtils.isBlank(blog.getTitle()), "标题不能为空");
+			Preconditions.checkArgument(!StringUtils.isBlank(blog.getContent()), "内容不能为空");
+			Preconditions.checkArgument(!StringUtils.isBlank(blog.getImages()), "内容不能为空");
+			return blogTbService.saveBlog(blog);
+		} catch (Exception e) {
+			log.error("BlogTBController.saveBlog().error:{}", e.getMessage(), e);
+			return Result.fail("发布博客失败");
+		}
 	}
 	/**
 	 * 主页博客查询
