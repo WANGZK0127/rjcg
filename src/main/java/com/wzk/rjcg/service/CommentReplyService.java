@@ -1,6 +1,7 @@
 package com.wzk.rjcg.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
+import com.wzk.rjcg.dto.CommentReplyVO;
 import com.wzk.rjcg.dto.SaveCommentReplyReq;
 import com.wzk.rjcg.entity.CommentReply;
 
@@ -27,6 +28,6 @@ public interface CommentReplyService extends IService<CommentReply> {
      * @param id
      * @return
      */
-   // List<CommentReplyVO> listComment(Integer id);
+     List<CommentReplyVO> listComment(Integer id);
 
 }

@@ -4,18 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.google.common.base.Preconditions;
+import com.wzk.rjcg.dto.CommentReplyVO;
 import com.wzk.rjcg.dto.SaveCommentReplyReq;
 import com.wzk.rjcg.entity.Blog;
 import com.wzk.rjcg.service.BlogTbService;
 import com.wzk.rjcg.service.CommentReplyService;
 import com.wzk.rjcg.util.Result;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -59,6 +58,30 @@ public class CommentReplyController {
 		} catch (Exception e) {
 			log.error("发布内容异常！错误原因{}", e.getMessage(), e);
 			return Result.fail("发布内容异常！");
+		}
+	}
+	
+	/**
+	 * 查询该博客下的评论
+	 */
+	@PostMapping(value = "/list")
+	public Result<List<CommentReplyVO>> list(@RequestParam("id") Integer id) {
+		try {
+			if (log.isInfoEnabled()) {
+				log.info("获取评论内容入参{}", JSON.toJSONString(id));
+			}
+			Preconditions.checkArgument(Objects.nonNull(id), "内容ID不能为空！");
+			List<CommentReplyVO> result = commentReplyService.listComment(id);
+			if (log.isInfoEnabled()) {
+				log.info("获取评论内容{}", JSON.toJSONString(result));
+			}
+			return Result.ok(result);
+		} catch (IllegalArgumentException e) {
+			log.error("参数异常！错误原因{}", e.getMessage(), e);
+			return Result.fail(e.getMessage());
+		} catch (Exception e) {
+			log.error("获取评论内容异常！错误原因{}", e.getMessage(), e);
+			return Result.fail("获取评论内容异常！");
 		}
 	}
 }

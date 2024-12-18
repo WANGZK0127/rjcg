@@ -17,11 +17,10 @@ import com.wzk.rjcg.util.SystemConstants;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
 import javax.annotation.Resource;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -76,6 +75,25 @@ public class UserTbServiceImpl extends ServiceImpl<UserTbDao, UserTb> implements
 		log.info("用户注册信息:{}", JSON.toJSONString(user));
 		save(user);
 		return Result.ok();
+	}
+	
+	@Override
+	public Map<String, UserDTO> batchGetUserInfo(List<String> userNameList) {
+		if (CollectionUtils.isEmpty(userNameList)) {
+			return Collections.emptyMap();
+		}
+		//根据用户名列表查询用户信息
+		List<UserTb> userList = query().in("id", userNameList).list();
+		log.info("用户信息:{}", JSON.toJSONString(userList));
+		Map<String, UserDTO> result = new HashMap<>();
+		for (UserTb user : userList) {
+			UserDTO userDTO = new UserDTO();
+			userDTO.setId(user.getId());
+			userDTO.setName(user.getName());
+			userDTO.setIcon(user.getIcon());
+			result.put(user.getId().toString(), userDTO);
+		}
+		return result;
 	}
 	
 	

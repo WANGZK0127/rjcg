@@ -1,19 +1,29 @@
 package com.wzk.rjcg.service.impl;
 
 
+import com.alibaba.fastjson.JSONArray;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.wzk.rjcg.dto.CommentReplyVO;
 import com.wzk.rjcg.dto.SaveCommentReplyReq;
+import com.wzk.rjcg.dto.UserDTO;
 import com.wzk.rjcg.entity.Blog;
 import com.wzk.rjcg.entity.CommentReply;
+import com.wzk.rjcg.entity.UserInfo;
+import com.wzk.rjcg.entity.UserTb;
 import com.wzk.rjcg.mapper.BlogTbMapper;
 import com.wzk.rjcg.mapper.CommentReplyMapper;
 import com.wzk.rjcg.service.CommentReplyService;
+import com.wzk.rjcg.service.UserTbService;
+import com.wzk.rjcg.util.TreeUtils;
 import com.wzk.rjcg.util.UserHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * <p>
@@ -24,7 +34,8 @@ public class CommentReplyServiceImpl extends ServiceImpl<CommentReplyMapper, Com
 
     @Resource
     private BlogTbMapper blogTbMapper;
-
+    @Resource
+    private UserTbService userTbService;
 
     @Override
     @Transactional(rollbackFor = Exception.class)
@@ -56,45 +67,40 @@ public class CommentReplyServiceImpl extends ServiceImpl<CommentReplyMapper, Com
     }
     
 
-//    @Override
-//    public List<CommentReplyVO> listComment(Integer id) {
-//        LambdaQueryWrapper<CommentReply> query = Wrappers.<CommentReply>lambdaQuery()
-//                .eq(CommentReply::getMomentId, req.getId())
-//                .eq(CommentReply::getIsDeleted, IsDeletedFlagEnum.UN_DELETED.getCode())
-//                .select(CommentReply::getId,
-//                        CommentReply::getMomentId,
-//                        CommentReply::getReplyType,
-//                        CommentReply::getContent,
-//                        CommentReply::getPicUrls,
-//                        CommentReply::getCreatedBy,
-//                        CommentReply::getToUser,
-//                        CommentReply::getCreatedTime,
-//                        CommentReply::getParentId);
-//        List<CommentReply> list = list(query);
-//        List<String> userNameList = list.stream().map(CommentReply::getCreatedBy).distinct().collect(Collectors.toList());
-//        Map<String, UserInfo> userInfoMap = userRpc.batchGetUserInfo(userNameList);
-//        UserInfo defaultUser = new UserInfo();
-//        List<CommentReplyVO> voList = list.stream().map(item -> {
-//            CommentReplyVO vo = new CommentReplyVO();
-//            vo.setId(item.getId());
-//            vo.setMomentId(item.getMomentId());
-//            vo.setReplyType(item.getReplyType());
-//            vo.setContent(item.getContent());
-//            if (Objects.nonNull(item.getPicUrls())) {
-//                vo.setPicUrlList(JSONArray.parseArray(item.getPicUrls(), String.class));
-//            }
-//            if (item.getReplyType() == 2) {
-//                vo.setFromId(item.getCreatedBy());
-//                vo.setToId(item.getToUser());
-//            }
-//            vo.setParentId(item.getParentId());
-//            UserInfo user = userInfoMap.getOrDefault(item.getCreatedBy(), defaultUser);
-//            vo.setUserName(user.getNickName());
-//            vo.setAvatar(user.getAvatar());
-//            vo.setCreatedTime(item.getCreatedTime().getTime());
-//            return vo;
-//        }).collect(Collectors.toList());
-//        return TreeUtils.buildTree(voList);
-//    }
+    @Override
+    public List<CommentReplyVO> listComment(Integer id) {
+        LambdaQueryWrapper<CommentReply> query = Wrappers.<CommentReply>lambdaQuery()
+                .eq(CommentReply::getBlogId, id)
+                .select(CommentReply::getId,
+                        CommentReply::getBlogId,
+                        CommentReply::getReplyType,
+                        CommentReply::getContent,
+                        CommentReply::getCreatedBy,
+                        CommentReply::getToUser,
+                        CommentReply::getCreatedTime,
+                        CommentReply::getParentId);
+        List<CommentReply> list = list(query);
+        List<String> userNameList = list.stream().map(CommentReply::getCreatedBy).distinct().collect(Collectors.toList());
+        Map<String, UserDTO> userInfoMap = userTbService.batchGetUserInfo(userNameList);
+        UserDTO defaultUser = new UserDTO();
+        List<CommentReplyVO> voList = list.stream().map(item -> {
+            CommentReplyVO vo = new CommentReplyVO();
+            vo.setId(item.getId());
+            vo.setBlogId(item.getBlogId());
+            vo.setReplyType(item.getReplyType());
+            vo.setContent(item.getContent());
+            if (item.getReplyType() == 2) {
+                vo.setFromId(item.getCreatedBy());
+                vo.setToId(item.getToUser());
+            }
+            vo.setParentId(item.getParentId());
+            UserDTO user = userInfoMap.getOrDefault(item.getCreatedBy(), defaultUser);
+            vo.setUserName(user.getName());
+            vo.setAvatar(user.getIcon());
+            vo.setCreatedTime(item.getCreatedTime().getTime());
+            return vo;
+        }).collect(Collectors.toList());
+        return TreeUtils.buildTree(voList);
+    }
 
 }
