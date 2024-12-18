@@ -14,6 +14,7 @@ import com.wzk.rjcg.mapper.UserTbDao;
 import com.wzk.rjcg.entity.UserTb;
 import com.wzk.rjcg.service.UserTbService;
 import com.wzk.rjcg.util.SystemConstants;
+import com.wzk.rjcg.util.UserHolder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
@@ -94,6 +95,16 @@ public class UserTbServiceImpl extends ServiceImpl<UserTbDao, UserTb> implements
 			result.put(user.getId().toString(), userDTO);
 		}
 		return result;
+	}
+	
+	@Override
+	public Result me() {
+		Integer userId = UserHolder.getUser().getId();
+		UserDTO userDTO = new UserDTO();
+		userDTO.setId(userId);
+		userDTO.setName(query().eq("id", userId).one().getName());
+		userDTO.setIcon(query().eq("id", userId).one().getIcon());
+		return Result.ok(userDTO);
 	}
 	
 	

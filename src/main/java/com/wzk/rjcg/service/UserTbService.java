@@ -27,5 +27,11 @@ public interface UserTbService extends IService<UserTb> {
 	 * @return
 	 */
 	Map<String, UserDTO> batchGetUserInfo(List<String> userNameList);
+	
+	/**
+	 * 查看头像，用户名信息
+	 * @return
+	 */
+	Result me();
 }
 

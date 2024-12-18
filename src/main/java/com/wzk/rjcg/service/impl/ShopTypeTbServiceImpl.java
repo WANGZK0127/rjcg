@@ -6,6 +6,7 @@ import com.wzk.rjcg.mapper.ShopTypeTbDao;
 import com.wzk.rjcg.entity.ShopTypeTb;
 import com.wzk.rjcg.service.ShopTypeTbService;
 import com.wzk.rjcg.util.Result;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +20,7 @@ import java.util.List;
  * @since 2024-12-12 22:35:46
  */
 @Service
+@Slf4j
 public class ShopTypeTbServiceImpl extends ServiceImpl<ShopTypeTbDao, ShopTypeTb> implements ShopTypeTbService {
 	
 	@Resource
@@ -27,7 +29,8 @@ public class ShopTypeTbServiceImpl extends ServiceImpl<ShopTypeTbDao, ShopTypeTb
 	@Override
 	public Result queryList() {
 		String key = "cache:shopType";
-		String shopType = stringRedisTemplate.opsForList().leftPop(key);
+		String shopType = stringRedisTemplate.opsForValue().get(key);
+		log.info("缓存shopType:{}",shopType);
 		//查询缓存
 		if(shopType != null){
 			//存在直接返回
@@ -39,7 +42,7 @@ public class ShopTypeTbServiceImpl extends ServiceImpl<ShopTypeTbDao, ShopTypeTb
 		if(shopTypeList == null){
 			return Result.fail("商铺分类不存在");
 		}
-		stringRedisTemplate.opsForList().leftPush(key,JSONUtil.toJsonStr(shopTypeList));
+		stringRedisTemplate.opsForValue().set(key,JSONUtil.toJsonStr(shopTypeList));
 		return Result.ok(shopTypeList);
 	}
 }

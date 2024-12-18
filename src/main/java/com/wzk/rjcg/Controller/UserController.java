@@ -77,8 +77,7 @@ public class UserController {
 	 */
 	@RequestMapping("/me")
 	public Result me(){
-		UserDTO user = UserHolder.getUser();
-		return Result.ok(user);
+		return userTbService.me();
 	}
 	
 }
