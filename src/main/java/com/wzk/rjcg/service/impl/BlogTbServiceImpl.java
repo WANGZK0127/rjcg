@@ -8,7 +8,7 @@ import com.wzk.rjcg.dto.ScrollResult;
 import com.wzk.rjcg.dto.UserDTO;
 import com.wzk.rjcg.entity.Follow;
 import com.wzk.rjcg.entity.UserTb;
-import com.wzk.rjcg.mapper.BlogTbDao;
+import com.wzk.rjcg.mapper.BlogTbMapper;
 import com.wzk.rjcg.entity.Blog;
 import com.wzk.rjcg.service.BlogTbService;
 import com.wzk.rjcg.service.IFollowService;
@@ -37,7 +37,7 @@ import static com.wzk.rjcg.util.RedisConstants.FEED_KEY;
  * @since 2024-12-13 14:07:08
  */
 @Service
-public class BlogTbServiceImpl extends ServiceImpl<BlogTbDao, Blog> implements BlogTbService {
+public class BlogTbServiceImpl extends ServiceImpl<BlogTbMapper, Blog> implements BlogTbService {
 	
 	@Resource
 	public UserTbService userTbService;
