@@ -3,7 +3,7 @@ package com.wzk.rjcg.dto;
 import com.wzk.rjcg.common.TreeNode;
 import lombok.Getter;
 import lombok.Setter;
-
+import lombok.*;
 import java.io.Serializable;
 
 /**
@@ -41,6 +41,10 @@ public class CommentReplyVO extends TreeNode implements Serializable {
     private String fromId;
 
     private String toId;
+    
+    //该注解默认值为false
+    
+    private Boolean isAuthor; 
 
     private Long parentId;
 

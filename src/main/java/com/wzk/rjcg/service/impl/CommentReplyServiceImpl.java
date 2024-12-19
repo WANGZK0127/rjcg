@@ -1,6 +1,7 @@
 package com.wzk.rjcg.service.impl;
 
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -18,6 +19,7 @@ import com.wzk.rjcg.service.CommentReplyService;
 import com.wzk.rjcg.service.UserTbService;
 import com.wzk.rjcg.util.TreeUtils;
 import com.wzk.rjcg.util.UserHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +32,7 @@ import java.util.stream.Collectors;
  * 评论及回复信息 服务实现类
  */
 @Service
+@Slf4j
 public class CommentReplyServiceImpl extends ServiceImpl<CommentReplyMapper, CommentReply> implements CommentReplyService {
 
     @Resource
@@ -62,6 +65,7 @@ public class CommentReplyServiceImpl extends ServiceImpl<CommentReplyMapper, Com
         
         comment.setCreatedBy(loginId.toString());
         comment.setCreatedTime(new Date());
+        log.info("保存评论内容{}", JSON.toJSONString(comment));
         blogTbMapper.incrReplyCount(blog.getId(), 1);
         return save(comment);
     }
@@ -69,6 +73,7 @@ public class CommentReplyServiceImpl extends ServiceImpl<CommentReplyMapper, Com
 
     @Override
     public List<CommentReplyVO> listComment(Integer id) {
+        Integer userId = blogTbMapper.selectById(id).getUserId();
         LambdaQueryWrapper<CommentReply> query = Wrappers.<CommentReply>lambdaQuery()
                 .eq(CommentReply::getBlogId, id)
                 .select(CommentReply::getId,
@@ -77,6 +82,7 @@ public class CommentReplyServiceImpl extends ServiceImpl<CommentReplyMapper, Com
                         CommentReply::getContent,
                         CommentReply::getCreatedBy,
                         CommentReply::getToUser,
+                        CommentReply::getReplyUser,
                         CommentReply::getCreatedTime,
                         CommentReply::getParentId);
         List<CommentReply> list = list(query);
@@ -89,9 +95,16 @@ public class CommentReplyServiceImpl extends ServiceImpl<CommentReplyMapper, Com
             vo.setBlogId(item.getBlogId());
             vo.setReplyType(item.getReplyType());
             vo.setContent(item.getContent());
-            if (item.getReplyType() == 2) {
+            if (item.getReplyType() == 1) {
                 vo.setFromId(item.getCreatedBy());
                 vo.setToId(item.getToUser());
+            } else if (item.getReplyType() == 2) {
+                vo.setFromId(item.getCreatedBy());
+                vo.setToId(item.getReplyUser());
+            }
+            vo.setIsAuthor(false);
+            if(Objects.equals(vo.getFromId(), userId.toString())){
+                vo.setIsAuthor(true);
             }
             vo.setParentId(item.getParentId());
             UserDTO user = userInfoMap.getOrDefault(item.getCreatedBy(), defaultUser);
