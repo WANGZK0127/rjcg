@@ -33,6 +33,10 @@ public class FollowController {
 		return followService.followCommon(id);
 	}
 	
+	/**
+	 * 我的粉丝
+	 * @return
+	 */
 	@RequestMapping("/followMe")
 	public Result followMe(){
 		return followService.followMe();

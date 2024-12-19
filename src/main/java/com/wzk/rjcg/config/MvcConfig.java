@@ -30,7 +30,9 @@ public class MvcConfig implements WebMvcConfigurer {
 						"/upload/**",
 						"/blog/hot",
 						"/user/login",
-						"/commentReply/list").order(1);
+						"/commentReply/list")
+				.addPathPatterns("blog/of/me",
+						"blog/myFollow").order(1);
 		registry.addInterceptor(new RefreshTokenInterceptor(stringRedisTemplate)).order(0);
 	}
 }

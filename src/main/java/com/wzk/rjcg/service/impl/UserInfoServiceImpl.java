@@ -14,6 +14,7 @@ import com.wzk.rjcg.service.UserInfoService;
 import com.wzk.rjcg.service.UserTbService;
 import com.wzk.rjcg.util.Result;
 import com.wzk.rjcg.util.UserHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -28,6 +29,7 @@ import java.util.List;
  * @since 2024-12-13 14:48:02
  */
 @Service
+@Slf4j
 public class UserInfoServiceImpl extends ServiceImpl<UserInfoDao, UserInfo> implements UserInfoService {
 	@Resource
 	public UserTbService userTbService;
@@ -64,6 +66,7 @@ public class UserInfoServiceImpl extends ServiceImpl<UserInfoDao, UserInfo> impl
 		//查询得到总赞
 		//1.查询用户发布博客的赞数，相加
 		List<Blog> blogs = blogTbService.list(new QueryWrapper<Blog>().eq("user_id", userId));
+		log.info("blogs:{}", blogs);
 		//2.查询用户收到的赞数，相加
 		int totalLike = blogs.stream().mapToInt(Blog::getLiked).sum();
 		info.setLikes(totalLike);

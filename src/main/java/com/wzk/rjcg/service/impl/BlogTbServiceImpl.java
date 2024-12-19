@@ -17,6 +17,7 @@ import com.wzk.rjcg.util.RedisConstants;
 import com.wzk.rjcg.util.Result;
 import com.wzk.rjcg.util.SystemConstants;
 import com.wzk.rjcg.util.UserHolder;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
@@ -35,6 +36,7 @@ import static com.wzk.rjcg.util.RedisConstants.FEED_KEY;
  * @since 2024-12-13 14:07:08
  */
 @Service
+@Slf4j
 public class BlogTbServiceImpl extends ServiceImpl<BlogTbMapper, Blog> implements BlogTbService {
 	
 	@Resource
@@ -74,6 +76,7 @@ public class BlogTbServiceImpl extends ServiceImpl<BlogTbMapper, Blog> implement
 		queryBlogUser(blog);
 		//判断是点过赞，给isLike赋值
 		isLiked(blog);
+		log.info("查询到的博客：{}", blog);
 		return Result.ok(blog);
 	}
 	
@@ -150,6 +153,7 @@ public class BlogTbServiceImpl extends ServiceImpl<BlogTbMapper, Blog> implement
 				.stream()
 				.map(user -> BeanUtil.copyProperties(user, UserDTO.class))
 				.collect(Collectors.toList());
+		log.info("博客点赞列表userDTOList:{}",userDTOList);
 		return Result.ok(userDTOList);
 	}
 	
@@ -165,7 +169,7 @@ public class BlogTbServiceImpl extends ServiceImpl<BlogTbMapper, Blog> implement
 			reverseRangeByScoreWithScores(key, 0, max, offset, 2)：
 				从key对应的有序集合中，查询分数在0到max之间的元素，从offset开始，每次返回2个元素。
 		 */
-		Set<ZSetOperations.TypedTuple<String>> tuples = stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, 0, max, offset, 2);
+		Set<ZSetOperations.TypedTuple<String>> tuples = stringRedisTemplate.opsForZSet().reverseRangeByScoreWithScores(key, 0, max, offset, 4);
 		//3.解析数据  blogid mintime offset
 		if (tuples == null || tuples.isEmpty()) {
 			return Result.ok();
