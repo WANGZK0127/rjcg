@@ -49,7 +49,7 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
 		//1.获取当前用户id
 		Integer userId = UserHolder.getUser().getId();
 		if(followId == userId){
-			return Result.fail("不能关注自己");
+			return Result.ok("不能关注自己");
 		}
 		String key = "follows:" + userId;
 		//2.判断是关注还是取关
