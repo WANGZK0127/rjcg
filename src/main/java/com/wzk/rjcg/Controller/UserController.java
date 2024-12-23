@@ -80,4 +80,23 @@ public class UserController {
 		return userTbService.me();
 	}
 	
+	/**
+	 * 更新用户头像
+	 * @param avatar
+	 * @return
+	 */
+	@RequestMapping("/avatar")
+	public Result avatar(@RequestParam("avatar") String avatar){
+		try {
+			log.info("UserController.avatar:{}", avatar);
+			Preconditions.checkArgument(!StringUtils.isBlank(avatar), "头像不能为空");
+			userTbService. update().eq("id", UserHolder.getUser().getId()).set("icon", avatar).update();
+			return Result.ok();
+		}catch (Exception e){
+			log.error("UserController.avatar.error:{}", e.getMessage(),e);
+			return Result.fail("更新失败");
+		}
+		
+	}
+	
 }

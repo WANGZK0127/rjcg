@@ -14,6 +14,7 @@ import com.wzk.rjcg.mapper.FollowMapper;
 import com.wzk.rjcg.service.BlogTbService;
 import com.wzk.rjcg.service.IFollowService;
 import com.wzk.rjcg.service.UserTbService;
+import com.wzk.rjcg.util.RedisConstants;
 import com.wzk.rjcg.util.Result;
 import com.wzk.rjcg.util.UserHolder;
 import lombok.extern.slf4j.Slf4j;
@@ -63,6 +64,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
 			if (isSuccess) {
 				//将关注的人存入redis的set集合中
 				stringRedisTemplate.opsForSet().add(key, followId.toString());
+				//将该用户关注数+1
+				stringRedisTemplate.opsForValue().increment(RedisConstants.FOLLOW_COUNT_KEY + userId);
 			}
 		} else {
 			//4.取关，删除数据
@@ -70,6 +73,8 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
 			if (isSuccess) {
 				//从redis的set集合中移除
 				stringRedisTemplate.opsForSet().remove(key, followId.toString());
+				//将该用户关注数-1
+				stringRedisTemplate.opsForValue().decrement(RedisConstants.FOLLOW_COUNT_KEY + userId);
 			}
 		}
 		return Result.ok();
