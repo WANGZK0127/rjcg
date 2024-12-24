@@ -118,6 +118,9 @@ public class FollowServiceImpl extends ServiceImpl<FollowMapper, Follow> impleme
 				.stream()
 				.map(Follow::getUserId)
 				.collect(Collectors.toList());
+		if(followMeIds.isEmpty()){
+			return Result.ok(Collections.emptyList());
+		}
 		//根据followIds批量查询用户
 		List<UserDTO> userDTOS = userService.listByIds(followMeIds).stream().map(user -> {
 			UserDTO userDTO = new UserDTO();

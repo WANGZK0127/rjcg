@@ -16,6 +16,7 @@ import com.wzk.rjcg.service.UserTbService;
 import com.wzk.rjcg.util.SystemConstants;
 import com.wzk.rjcg.util.UserHolder;
 import lombok.extern.slf4j.Slf4j;
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.CollectionUtils;
@@ -35,6 +36,8 @@ import java.util.concurrent.TimeUnit;
 public class UserTbServiceImpl extends ServiceImpl<UserTbDao, UserTb> implements UserTbService {
 	@Resource
 	private StringRedisTemplate stringRedisTemplate;
+	@Resource
+	private UserTbDao userMapper;
 	
 	@Override
 	public Result login(LoginFormDTO loginFormDTO) {
@@ -46,20 +49,14 @@ public class UserTbServiceImpl extends ServiceImpl<UserTbDao, UserTb> implements
 			//用户未找到，请注册
 			return Result.fail("用户未找到，请注册");
 		}
-		String token = UUID.randomUUID().toString(true);
-		String key = RedisConstants.LOGIN_USER_KEY + token;
-		
-		UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
-		//将Long类型的id转为String类型,否则报错
-		Map<String, Object> map = BeanUtil.beanToMap(userDTO, new HashMap<>(), CopyOptions.create()
-				.setIgnoreNullValue(true)
-				.setFieldValueEditor((fieldName, fieldValue) -> fieldValue != null ? fieldValue.toString() : ""));
-		
-		//存储到redis中
-		stringRedisTemplate.opsForHash().putAll(key,map);
-		
-		//设置token的过期时间
-		stringRedisTemplate.expire(key,RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
+		//验证密码
+		String password = loginFormDTO.getPassword();
+		String hashPassWord = user.getPassword();
+//		if(!BCrypt.checkpw(password, hashPassWord)){
+//			//密码错误
+//			return Result.fail("密码错误");
+//		}
+		String token =  token(user);
 		//返回token
 		return Result.ok(token);
 	}
@@ -67,15 +64,22 @@ public class UserTbServiceImpl extends ServiceImpl<UserTbDao, UserTb> implements
 	@Override
 	public Result register(LoginFormDTO loginFormDTO) {
 		String phone = loginFormDTO.getPhone();
+		if (query().eq("phone", phone).one() != null) {
+			return Result.fail("手机号已注册");
+		}
 		String password = loginFormDTO.getPassword();
+		String hashPassWord = BCrypt.hashpw(password, BCrypt.gensalt());
 		UserTb user = new UserTb();
 		user.setPhone(phone);
 		user.setName(SystemConstants.USER_NAME + RandomUtil.randomString(10));
-		user.setPassword(password);
+		user.setPassword(hashPassWord);
 		user.setCreateTime(new Date());
 		log.info("用户注册信息:{}", JSON.toJSONString(user));
 		save(user);
-		return Result.ok();
+		user.setId(user.getId());
+		String token =  token(user);
+		
+		return Result.ok(token);
 	}
 	
 	@Override
@@ -107,6 +111,23 @@ public class UserTbServiceImpl extends ServiceImpl<UserTbDao, UserTb> implements
 		return Result.ok(userDTO);
 	}
 	
-	
+	public String token(UserTb user){
+		String token = UUID.randomUUID().toString(true);
+		String key = RedisConstants.LOGIN_USER_KEY + token;
+		
+		UserDTO userDTO = BeanUtil.copyProperties(user, UserDTO.class);
+		//将Long类型的id转为String类型,否则报错
+		Map<String, Object> map = BeanUtil.beanToMap(userDTO, new HashMap<>(), CopyOptions.create()
+				.setIgnoreNullValue(true)
+				.setFieldValueEditor((fieldName, fieldValue) -> fieldValue != null ? fieldValue.toString() : ""));
+		
+		//存储到redis中
+		stringRedisTemplate.opsForHash().putAll(key,map);
+		
+		//设置token的过期时间
+		stringRedisTemplate.expire(key,RedisConstants.LOGIN_USER_TTL, TimeUnit.MINUTES);
+		
+		return token;
+	}
 }
 

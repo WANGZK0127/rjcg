@@ -11,6 +11,5 @@ import org.apache.ibatis.annotations.Mapper;
  * @since 2024-12-12 15:48:41
  */
 public interface UserTbDao extends BaseMapper<UserTb> {
-	
 }
 
